@@ -1,3 +1,7 @@
+# Virtual Envrionemtn
+virtenv
+/virtenv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
