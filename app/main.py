@@ -52,15 +52,19 @@ def root():
 @app.get("/posts")
 def get_posts():
     # fastapi will serialize this into JSON format
-    return {"data": my_posts}
+    cursor.execute("""SELECT * FROM posts""")
+    # Runs the SQL Command
+    posts = cursor.fetchall()
+    return {"data": posts}
 
 # pass status code 
 @app.post('/posts', status_code=status.HTTP_201_CREATED)
 def create_posts(post: Post):
-    post_dict = post.dict()
-    post_dict["id"] = randrange(0, 1000000) # for dev purposes so id is uniq
-    my_posts.append(post_dict)
-    return {"data":  post_dict}
+    cursor.execute("""INSERT INTO POSTS (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {"data":  new_post}
 
 # For Demo
 # @app.get("/posts/latest")
@@ -70,12 +74,13 @@ def create_posts(post: Post):
 
 @app.get("/posts/{id}")
 def get_post(id: int, response: Response): # type check with fastapi
-    post = find_post(id)
+    cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id)))
+    
+    post = cursor.fetchone()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"message": f"Post with id: {id} was not found"}
+
     return {"post_details": post}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -94,13 +99,14 @@ def delete_post(id: int):
 
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
-    index = find_index_post(id)
 
-    if index == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} does not exist")
+    cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
 
-    post_dict = post.dict()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
+    updated_post = cursor.fetchone()
+    conn.commit()
 
-    return {"data" : post_dict}
+    if updated_post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} does not exist")
+    
+
+    return {"data" : updated_post}
