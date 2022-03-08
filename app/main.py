@@ -6,21 +6,33 @@ from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from . import models
+from .database import SessionLocal, engine
+
+
+# Creates all of our models
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Post class extends basemodel -> pydantic
 class Post(BaseModel):
     title: str
     content: str
     published: bool = True # Defaulted to True
-    rating: Optional[int] = None
 
 
 while True:
     # ORM Setup
     try:
-        conn = psycopg2.connect(host='localhost', database='fastapi', user='silverberry', password='peace123q', cursor_factory = RealDictCursor)
+        conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='peace123q', cursor_factory = RealDictCursor)
         cursor = conn.cursor()
         print("DB Connected")
         break
