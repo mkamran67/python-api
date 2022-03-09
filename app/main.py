@@ -61,15 +61,22 @@ def root():
 # Test
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
-    return {"status" : "Success waa waa"}
 
+    posts = db.query(models.Post).all()
 
+    return {"data" : posts}
+
+# db session must be passed in when you're 'tapping' into the db
 @app.get("/posts")
-def get_posts():
-    # fastapi will serialize this into JSON format
-    cursor.execute("""SELECT * FROM posts""")
-    # Runs the SQL Command
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+
+    # # fastapi will serialize this into JSON format
+    # cursor.execute("""SELECT * FROM posts""")
+    # # Runs the SQL Command
+    # posts = cursor.fetchall()
+
+    posts = db.query(models.Post).all()
+
     return {"data": posts}
 
 # pass status code 
