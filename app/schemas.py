@@ -1,7 +1,7 @@
 from ast import Str
 from datetime import datetime
 from turtle import title
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 
 
 # Post class extends basemodel -> pydantic -> Schema
@@ -28,5 +28,13 @@ class Post(PostBase):
         orm_mode = True # This lets pydantic know it's an orm model not a dictionary
 
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        orm_mode = True # This lets pydantic know it's an orm model not a dictionary
