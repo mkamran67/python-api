@@ -1,6 +1,5 @@
-from ast import Str
 from datetime import datetime
-from turtle import title
+from typing import Optional
 from pydantic import BaseModel,EmailStr
 
 
@@ -38,3 +37,16 @@ class UserOut(BaseModel):
 
     class Config:
         orm_mode = True # This lets pydantic know it's an orm model not a dictionary
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: Optional[str] = None
+

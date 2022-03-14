@@ -1,4 +1,5 @@
-from .. import models, schemas
+from app import oauth2
+from .. import models, schemas, oauth2
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from ..database import engine, get_db
 from typing import List
@@ -12,7 +13,7 @@ router = APIRouter(
 
 # db session must be passed in when you're 'tapping' into the db
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db), user_id : int = Depends(oauth2.get_current_user)):
 
     # # fastapi will serialize this into JSON format
     # cursor.execute("""SELECT * FROM posts""")
@@ -25,8 +26,9 @@ def get_posts(db: Session = Depends(get_db)):
 
 # pass status code 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), user_id : int = Depends(oauth2.get_current_user)):
     
+    print(user_id)
 
     # cursor.execute("""INSERT INTO POSTS (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
     # new_post = cursor.fetchone()
@@ -44,7 +46,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     return new_post
 
 @router.get("/{id}", response_model=schemas.Post)
-def get_post(id: int, response: Response, db: Session = Depends(get_db)): # type check with fastapi
+def get_post(id: int, response: Response, db: Session = Depends(get_db), user_id : int = Depends(oauth2.get_current_user)): # type check with fastapi
 
     # cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id)))
     # post = cursor.fetchone()
@@ -58,7 +60,7 @@ def get_post(id: int, response: Response, db: Session = Depends(get_db)): # type
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(id: int, db: Session = Depends(get_db), user_id : int = Depends(oauth2.get_current_user)):
     # deleteing post
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
@@ -72,7 +74,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db)):
+def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db), user_id : int = Depends(oauth2.get_current_user)):
 
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
 
