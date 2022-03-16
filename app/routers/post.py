@@ -13,14 +13,15 @@ router = APIRouter(
 
 # db session must be passed in when you're 'tapping' into the db
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0):
 
     # # fastapi will serialize this into JSON format
     # cursor.execute("""SELECT * FROM posts""")
     # # Runs the SQL Command
     # posts = cursor.fetchall()
 
-    posts = db.query(models.Post).all()
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    posts = db.query(models.Post).limit(limit).offset(skip).all()
 
     return posts
 
@@ -34,8 +35,8 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
 
     # print(**post.dict())
     # Unpack the dictionary
-    new_post = models.Post(**post.dict())
-
+    new_post = models.Post(owner_id=current_user.id , **post.dict())
+    
     db.add(new_post) # add post to
     db.commit() # commits entry to DB
     db.refresh(new_post) # Refreshes the new post variable with DB entry
@@ -50,7 +51,7 @@ def get_post(id: int, response: Response, db: Session = Depends(get_db), current
     # post = cursor.fetchone()
 
     # filter by id and get the first found
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post).filter(models.Post.id == id and models.Post.owner_id == current_user.id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")
@@ -63,9 +64,14 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user : int = Dep
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
-    if post_query.first() == None:
+    retrieved_post = post_query.first()
+
+    if retrieved_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} does not exist")
     
+    if retrieved_post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"You're not allowed to do that!")
+
     post_query.delete(synchronize_session=False)
     db.commit()
 
@@ -85,6 +91,10 @@ def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends
 
     if retrieved_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} does not exist")
+
+    if retrieved_post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"You're not allowed to do that!")
+
     
     #update requires a dictionary of updated materials
     post_query.update(updated_post.dict(),synchronize_session=False)
