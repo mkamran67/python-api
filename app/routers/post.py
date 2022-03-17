@@ -2,7 +2,7 @@ from app import oauth2
 from .. import models, schemas, oauth2
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from ..database import engine, get_db
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 
 router = APIRouter(
@@ -13,7 +13,7 @@ router = APIRouter(
 
 # db session must be passed in when you're 'tapping' into the db
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0):
+def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
     # # fastapi will serialize this into JSON format
     # cursor.execute("""SELECT * FROM posts""")
@@ -21,7 +21,7 @@ def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2
     # posts = cursor.fetchall()
 
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
-    posts = db.query(models.Post).limit(limit).offset(skip).all()
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
     return posts
 

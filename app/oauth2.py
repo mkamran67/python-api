@@ -4,6 +4,27 @@ from . import schemas, database, models
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from .config import settings
+
+# Below in comments are various ways of importing environment variables
+# import os
+# from dotenv import load_dotenv
+# from operator import itemgetter
+
+# load_dotenv()
+
+#environment variables - Using built in library itemgetter to destructer
+# ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM = itemgetter('ACCESS_TOKEN_EXPIRE_MINUTES','SECRET_KEY','ALGORITHM')(os.environ)
+
+# ACCESS_TOKEN_EXPIRE_MINUTES  = os.environ['ACCESS_TOKEN_EXPIRE_MINUTES']
+# SECRET_KEY = os.environ['SECRET_KEY']
+# ALGORITHM = os.environ['ALGORITHM']
+
+ACCESS_TOKEN_EXPIRE_MINUTES  = settings.access_token_expire_minutes
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+
+
 
 # feed the end point
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -15,15 +36,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # Command below for generating random key
 # openssl rand -hex 32
-SECRET_KEY = '3f41409e16c71b90cd92b458161586e2bcac7b0bbacebfd73c4988caeac7f4d8'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 90
+
 
 def create_access_token(data: dict):
     to_encode = data.copy() # Make a copy of data so we don't manipulate the original
 
     # Expiration should be UTC
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
 
     # data to encode, the secret, algorithm NOTE enocded_jwt algorithm vs payload algorithms
