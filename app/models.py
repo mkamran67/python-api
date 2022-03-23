@@ -1,3 +1,4 @@
+from tkinter.tix import COLUMN
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, null
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
@@ -25,3 +26,10 @@ class Post(Base):
 
     # Will auto import from DB not a relation in DB
     owner = relationship("User")
+
+# Composite Keys
+class Vote(Base):
+    __tablename__ = 'votes'
+
+    user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"), primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id",ondelete="CASCADE"), primary_key=True)

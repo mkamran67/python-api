@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel,EmailStr, conint
 
 
 # Post class extends basemodel -> pydantic -> Schema
@@ -48,3 +48,9 @@ class Post(PostBase):
     
     class Config:
         orm_mode = True # This lets pydantic know it's an orm model not a dictionary
+
+# We get our user ID via JWT
+class Vote(BaseModel):
+    post_id: int
+    dir: conint(le=1, ge=0) # less than or equal to 1 && greater than or equal to 0 
+    

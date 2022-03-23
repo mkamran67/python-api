@@ -9,7 +9,6 @@ router = APIRouter(
     tags=['Authentication']
 )
 
-#
 # OAuth2PasswordRequestForm creates a dependency which only accepts form-data not raw JSON
 # It also accepts username instead of email
 @router.post('/login', response_model=schemas.Token)
