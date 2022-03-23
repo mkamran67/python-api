@@ -49,8 +49,11 @@ class Post(PostBase):
     class Config:
         orm_mode = True # This lets pydantic know it's an orm model not a dictionary
 
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+
 # We get our user ID via JWT
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1, ge=0) # less than or equal to 1 && greater than or equal to 0 
-    

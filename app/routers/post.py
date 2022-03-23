@@ -4,6 +4,7 @@ from fastapi import Response, status, HTTPException, Depends, APIRouter
 from ..database import engine, get_db
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 router = APIRouter(
     prefix="/posts",
@@ -12,7 +13,9 @@ router = APIRouter(
 
 
 # db session must be passed in when you're 'tapping' into the db
-@router.get("/", response_model=List[schemas.Post])
+# @router.get("/", response_model=List[schemas.Post])
+# @router.get("/")
+@router.get("/", response_model=List[schemas.PostOut])
 def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
     # # fastapi will serialize this into JSON format
@@ -21,9 +24,13 @@ def get_posts(db: Session = Depends(get_db), current_user : int = Depends(oauth2
     # posts = cursor.fetchall()
 
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-    return posts
+    # By default SQLAlchemy uses inner joins -> specify it's an outer
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    # return posts
+    return results
 
 # pass status code 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -44,14 +51,16 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
 
     return new_post
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(id: int, response: Response, db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user)): # type check with fastapi
 
     # cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id)))
     # post = cursor.fetchone()
 
     # filter by id and get the first found
-    post = db.query(models.Post).filter(models.Post.id == id and models.Post.owner_id == current_user.id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id and models.Post.owner_id == current_user.id).first()
+    
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id and models.Post.owner_id == current_user.id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")

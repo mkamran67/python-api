@@ -24,7 +24,7 @@ class Post(Base):
     published = Column(Boolean, server_default='TRUE', nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
-    # Will auto import from DB not a relation in DB
+    # Will auto import from DB not a relation in PSQL DB
     owner = relationship("User")
 
 # Composite Keys
