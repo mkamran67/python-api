@@ -16,7 +16,7 @@ app = FastAPI()
 # Which domains/websites can use your API
 # As a public API you can use a wildcard -> ["*"]
 origins = [
-    "https://www.google.com",
+    "*",
 ]
 
 app.add_middleware(
