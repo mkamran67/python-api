@@ -1,4 +1,3 @@
-from tkinter.tix import COLUMN
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, null
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
