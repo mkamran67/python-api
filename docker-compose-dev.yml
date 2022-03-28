@@ -1,0 +1,34 @@
+# Specify docker version
+version: "3"
+# Volumes is DBs within Docker network you want
+volumes:
+  postgres-db:
+# Services -> A service is just a container
+services:
+  api:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/usr/src/app:ro
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - DATABASE_HOSTNAME=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_PASSWORD=peace123q
+      - DATABASE_NAME=fastapi
+      - DATABASE_USERNAME=postgres
+      - SECRET_KEY=3f41409e16c51b90cd92b458161586e2bcac7b0bbacebfd73c4988caeac7f4d8
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=90
+
+  # Creating a Postgres DB within the Docker network
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=peace123q
+      - POSTGRES_DB=fastapi
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
