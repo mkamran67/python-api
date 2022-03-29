@@ -6,7 +6,7 @@ volumes:
 # Services -> A service is just a container
 services:
   api:
-    build: .
+    image: mkamran94/fastapi
     depends_on:
       - postgres
     ports:
