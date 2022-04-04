@@ -1,5 +1,5 @@
-# python-api
+# FastAPI
 
-An api built with Python, no frontend is attached to this besides the auto generated docs.
+ ### Python Api built for an IG Clone
 
-- To start the server run
+ 
