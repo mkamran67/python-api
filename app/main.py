@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 # from app.routers.vote import vote
 # from .database import engine
 # from . import models # Importing everything from a file
 from .routers import post, user, auth, vote
-
 
 
 # Creates all of our models -> Tells SQLAlchemy to generarte based on models
@@ -32,7 +32,7 @@ app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(vote.router)
 
+
 @app.get("/")
 def root():
-    return {"message" : "Hello World!!"}
-
+    return {"message": "Hello from GH Actions CI - CD!!"}
