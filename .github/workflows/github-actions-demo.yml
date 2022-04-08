@@ -85,11 +85,9 @@ jobs:
     needs: [build]
     environment:
       name: Production
-
     steps:
       - name: Pulling git repo
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v2
       - name: deploying to Heroku
       - uses: actions/checkout@v2
       - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
